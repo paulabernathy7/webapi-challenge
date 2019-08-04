@@ -77,6 +77,34 @@ router.post("/", validateAction, (req, res) => {
     });
 });
 
+router.post("/:id", (req, res) => {
+  const { id } = req.params;
+  const action = req.body;
+
+  if (!id) {
+    res
+      .status(404)
+      .json({ message: "The action with the specified ID does not exist." });
+  } else {
+    Action.insert(action)
+      .then(action => {
+        if (action) {
+          res.status(201).json(action);
+        } else {
+          res.status(400).json({
+            errorMessage: "Please provide project_id, notes and description."
+          });
+        }
+      })
+      .catch(err => {
+        res.status(500).json({
+          error: "There was an error while saving the comment to the database",
+          err: err.message // always include err.message
+        });
+      });
+  }
+});
+
 // custom middleware
 
 async function validateActionId(req, res, next) {
@@ -115,24 +143,5 @@ function validateAction(req, res, next) {
       .json({ message: "project_id, description, or notes are missing" });
   }
 }
-async function validateProjectId(req, res, next) {
-  try {
-    const { id } = req.params;
-    const project = await Project.get(id);
-    if (project) {
-      req.project = project;
-      next();
-    } else {
-      next({
-        status: 404,
-        message: "The project with the specified ID does not exist."
-      });
-    }
-  } catch {
-    next({
-      status: 500,
-      message: "The project information could not be retrieved."
-    });
-  }
-}
+
 module.exports = router;
