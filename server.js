@@ -5,12 +5,12 @@ const helmet = require("helmet");
 
 const server = express(); // other req parsers are available, this is also called middleware
 server.use(express.json());
-server.use("/api/actions", logger, dataRouter);
-server.use("/api/projects", logger, dataRouter);
+server.use("/api/actions", logger, actionRouter);
+server.use("/api/projects", logger, projectRouter);
 server.use(helmet());
 
 //base URL
-server.get("/", (req, res) => {
+server.get("/", (req, res, next) => {
   res.send({ success: "We're ready" });
 
   next();
