@@ -1,5 +1,7 @@
 const express = require("express");
 Action = require("./helpers/actionModel");
+actionId = require("./project-router");
+Project = require("./helpers/projectModel");
 
 const router = express.Router();
 
@@ -65,6 +67,16 @@ router.put("/:id", (req, res) => {
   }
 });
 
+router.post("/", validateAction, (req, res) => {
+  Action.insert(req.body)
+    .then(action => {
+      res.status(201).json(action);
+    })
+    .catch(err => {
+      res.status(500).json({ message: err.message });
+    });
+});
+
 // custom middleware
 
 async function validateActionId(req, res, next) {
@@ -88,4 +100,39 @@ async function validateActionId(req, res, next) {
   }
 }
 
+function validateAction(req, res, next) {
+  const action = req.body;
+
+  if (action.description && action.notes) {
+    next();
+    if (!action.project_id) {
+      res.status(400).json({ message: "project_id must be existing" });
+      next();
+    }
+  } else {
+    res
+      .status(400)
+      .json({ message: "project_id, description, or notes are missing" });
+  }
+}
+async function validateProjectId(req, res, next) {
+  try {
+    const { id } = req.params;
+    const project = await Project.get(id);
+    if (project) {
+      req.project = project;
+      next();
+    } else {
+      next({
+        status: 404,
+        message: "The project with the specified ID does not exist."
+      });
+    }
+  } catch {
+    next({
+      status: 500,
+      message: "The project information could not be retrieved."
+    });
+  }
+}
 module.exports = router;
