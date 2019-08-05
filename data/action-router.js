@@ -40,30 +40,14 @@ router.delete("/:id", validateActionId, (req, res) => {
     });
 });
 
-router.put("/:id", (req, res) => {
-  const { id } = req.params;
-  const { description } = req.body;
-
-  if (!description) {
-    res
-      .status(400)
-      .json({ errorMessage: "Please provide description to action." });
+router.put("/:id", validateActionId, validateAction, async (req, res) => {
+  const action = await Action.update(req.params.id, req.body);
+  if (action) {
+    res.status(200).json(action);
   } else {
-    Action.update(id, req.body)
-      .then(action => {
-        if (action) {
-          res.status(200).json(action);
-        } else {
-          res.status(404).json({
-            message: "The action with the specified ID does not exist"
-          });
-        }
-      })
-      .catch(err => {
-        res.status(500).json({
-          errorMessage: "The action information count not be modified"
-        });
-      });
+    res
+      .status(500)
+      .json({ message: "The action information could not be updated." });
   }
 });
 

@@ -13,6 +13,27 @@ router.post("/", validateProject, (req, res) => {
     });
 });
 
+router.post("/:id", validateProjectId, (req, res) => {
+  const project = req.body;
+
+  Project.insert(project)
+    .then(project => {
+      if (project) {
+        res.status(201).json(project);
+      } else {
+        res
+          .status(400)
+          .json({ errorMessage: "Please provide name or description." });
+      }
+    })
+    .catch(err => {
+      res.status(500).json({
+        errorMessage: "There was an error while saving",
+        err: err.message
+      });
+    });
+});
+
 router.get("/", (req, res) => {
   Project.get()
     .then(projects => {
@@ -24,6 +45,39 @@ router.get("/", (req, res) => {
         message: err.message
       });
     });
+});
+
+router.get("/:id", validateProjectId, (req, res) => {
+  res.status(200).json(req.project);
+});
+
+router.delete("/:id", validateProjectId, (req, res) => {
+  const { id } = req.params;
+
+  Project.remove(id)
+    .then(action => {
+      if (action) {
+        res.status(200).json({ message: "The project was deleted" });
+      } else {
+        res.status(404).json({
+          message: "The project with the specified ID does not exist."
+        });
+      }
+    })
+    .catch(err => {
+      res.status(500).json({ error: "The project could not be removed" });
+    });
+});
+
+router.put("/:id", validateProjectId, validateProject, async (req, res) => {
+  const project = await Project.update(req.params.id, req.body);
+  if (project) {
+    res.status(200).json(project);
+  } else {
+    res
+      .status(500)
+      .json({ message: "The action information could not be updated." });
+  }
 });
 
 function validateProject(req, res, next) {
@@ -44,16 +98,14 @@ async function validateProjectId(req, res, next) {
       req.project = project;
       next();
     } else {
-      next({
-        status: 404,
-        message: "The project with the specified ID does not exist."
-      });
+      res
+        .status(404)
+        .json({ message: "The project with the specified id does not exist" });
     }
   } catch {
-    next({
-      status: 500,
-      message: "The project information could not be retrieved."
-    });
+    res
+      .status(500)
+      .json({ message: "The project information could not be retrieved." });
   }
 }
 
