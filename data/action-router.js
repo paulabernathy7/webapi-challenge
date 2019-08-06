@@ -99,16 +99,14 @@ async function validateActionId(req, res, next) {
       req.action = action;
       next();
     } else {
-      next({
-        status: 404,
-        message: "The action with the specified ID does not exist."
-      });
+      res
+        .status(404)
+        .json({ message: "The action with the specified ID does not exist." });
     }
   } catch {
-    next({
-      status: 500,
-      message: "The action information could not be retrieved."
-    });
+    res
+      .status(500)
+      .json({ errorMessage: "The action information could not be retrieved." });
   }
 }
 
