@@ -13,7 +13,7 @@ router.post("/", validateProject, (req, res) => {
     });
 });
 
-router.post("/:id", validateProjectId, (req, res) => {
+router.post("/:id", validateProject, (req, res) => {
   const project = req.body;
 
   Project.insert(project)

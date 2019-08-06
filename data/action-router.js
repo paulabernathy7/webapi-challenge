@@ -61,32 +61,26 @@ router.post("/", validateAction, (req, res) => {
     });
 });
 
-router.post("/:id", (req, res) => {
-  const { id } = req.params;
+router.post("/", validateAction, (req, res) => {
+  //do not need to validate the ID because its auto generated. Also do not need id in the route
   const action = req.body;
 
-  if (!id) {
-    res
-      .status(404)
-      .json({ message: "The action with the specified ID does not exist." });
-  } else {
-    Action.insert(action)
-      .then(action => {
-        if (action) {
-          res.status(201).json(action);
-        } else {
-          res.status(400).json({
-            errorMessage: "Please provide project_id, notes and description."
-          });
-        }
-      })
-      .catch(err => {
-        res.status(500).json({
-          error: "There was an error while saving the comment to the database",
-          err: err.message // always include err.message
+  Action.insert(action)
+    .then(action => {
+      if (action) {
+        res.status(201).json(action);
+      } else {
+        res.status(400).json({
+          errorMessage: "Please provide project_id, notes and description."
         });
+      }
+    })
+    .catch(err => {
+      res.status(500).json({
+        error: "There was an error while saving the comment to the database",
+        err: err.message // always include err.message
       });
-  }
+    });
 });
 
 // custom middleware
@@ -106,14 +100,14 @@ async function validateActionId(req, res, next) {
   } catch {
     res
       .status(500)
-      .json({ errorMessage: "The action information could not be retrieved." });
+      .json({ message: "The action information could not be retrieved." });
   }
 }
 
 function validateAction(req, res, next) {
   const action = req.body;
 
-  if (action.description && action.notes) {
+  if (action.description && action.notes && action.project_id) {
     next();
     if (!action.project_id) {
       res.status(400).json({ message: "project_id must be existing" });
